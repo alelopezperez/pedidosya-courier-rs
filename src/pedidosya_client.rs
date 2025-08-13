@@ -1,9 +1,34 @@
 use reqwest::header::{self, AUTHORIZATION};
-use serde::{Deserialize, de::Error as _};
+use serde::{Deserialize, Serialize, de::Error as _};
 
-use crate::models::{ContentType, Error, ResponseContent};
+use crate::models::{
+    ContentType, Error, EstimationShippingResponse, HttpErrorResponse, ResponseContent,
+    estimation_shipping_request::EstimationShippingRequest,
+};
 
 const PEDIDOSYA_BASE_URL: &str = "https://courier-api.pedidosya.com";
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum GetShippingsEstimatesError {
+    Status400(HttpErrorResponse),
+    Status403(HttpErrorResponse),
+    Status500(HttpErrorResponse),
+    StatusNonExpected(HttpErrorResponse),
+    UnknownValue(serde_json::Value),
+}
+
+impl From<HttpErrorResponse> for GetShippingsEstimatesError {
+    fn from(value: HttpErrorResponse) -> Self {
+        match value.status {
+            Some(400) => Self::Status400(value),
+            Some(403) => Self::Status403(value),
+            Some(500) => Self::Status500(value),
+            Some(_) => Self::StatusNonExpected(value),
+            None => Self::StatusNonExpected(value),
+        }
+    }
+}
 
 pub struct PedidosYaClient {
     client: reqwest::Client,
@@ -41,9 +66,15 @@ impl PedidosYaClient {
     where
         Req: serde::Serialize,
         Res: serde::de::DeserializeOwned,
-        E: serde::de::DeserializeOwned,
+        E: serde::de::DeserializeOwned + From<HttpErrorResponse>,
     {
-        let response = self.client.post(url).json(body).send().await?;
+        let response = self
+            .client
+            .post(format!("{}/{}", self.base_path, url))
+            .json(body)
+            .send()
+            .await?;
+
         let content_type: ContentType = response
             .headers()
             .get(reqwest::header::CONTENT_TYPE)
@@ -68,7 +99,8 @@ impl PedidosYaClient {
             }
         } else if let ContentType::Json = content_type {
             let content = response.text().await?;
-            let entity = serde_json::from_str(&content)?;
+            let http_error_response: HttpErrorResponse = serde_json::from_str(&content)?;
+            let entity = Some(E::from(http_error_response));
             let content = ResponseContent {
                 status,
                 content,
@@ -80,5 +112,13 @@ impl PedidosYaClient {
                 "Received empty content type response that cannot be converted to `models::`",
             )))
         }
+    }
+
+    pub async fn shipping_estimate_shipping_order(
+        &self,
+        estimation_shipping_request: EstimationShippingRequest,
+    ) -> Result<EstimationShippingResponse, Error<GetShippingsEstimatesError>> {
+        self.send_post_request("/v3/shippings/estimates", &estimation_shipping_request)
+            .await
     }
 }

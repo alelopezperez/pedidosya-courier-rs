@@ -45,4 +45,24 @@ impl From<Option<&str>> for ContentType {
     }
 }
 
-mod shippings;
+pub mod estimation_shipping_request;
+pub mod estimation_shipping_response;
+pub mod http_errors;
+
+mod delivery_offer;
+mod route;
+mod shipping_item_request;
+mod shipping_pricing_route;
+mod shipping_request_requirements;
+mod way_point_model;
+mod way_point_model_response;
+
+pub use delivery_offer::DeliveryOffer;
+pub use estimation_shipping_response::EstimationShippingResponse;
+pub use http_errors::HttpErrorResponse;
+pub use route::Route;
+pub use shipping_item_request::ShippingItemRequest;
+pub use shipping_pricing_route::ShippingRoutePricing;
+pub use shipping_request_requirements::ShippingRequestRequirements;
+pub use way_point_model::WayPointModel;
+pub use way_point_model_response::WayPointModelResponse;

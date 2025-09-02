@@ -57,6 +57,7 @@ impl From<HttpErrorResponse> for GetShippingsEstimatesError {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct PedidosYaClient {
     client: reqwest::Client,
     base_path: String,

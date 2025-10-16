@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize, de::Error as _};
 
 use crate::models::{
     ConfirmEstimationShippingRequest, ConfirmShippingResponse, ContentType, Error,
-    EstimationShippingResponse, HttpErrorResponse, ResponseContent,
+    EstimationShippingResponse, HttpErrorResponse, ResponseContent, ShippingResponse,
     estimation_shipping_request::EstimationShippingRequest,
 };
 
@@ -32,6 +32,17 @@ pub enum ConfirmEstimateError {
     StatusNonExpected(HttpErrorResponse),
     UnknownValue(serde_json::Value),
 }
+
+/// struct for typed errors of method [`v3_shippings_shipping_id_get`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ShippingOderDetailsError {
+    Status400(HttpErrorResponse),
+    Status403(HttpErrorResponse),
+    Status404(HttpErrorResponse),
+    StatusNonExpected(HttpErrorResponse),
+    UnknownValue(serde_json::Value),
+}
 impl From<HttpErrorResponse> for ConfirmEstimateError {
     fn from(value: HttpErrorResponse) -> Self {
         match value.status {
@@ -51,6 +62,18 @@ impl From<HttpErrorResponse> for GetShippingsEstimatesError {
             Some(400) => Self::Status400(value),
             Some(403) => Self::Status403(value),
             Some(500) => Self::Status500(value),
+            Some(_) => Self::StatusNonExpected(value),
+            None => Self::StatusNonExpected(value),
+        }
+    }
+}
+
+impl From<HttpErrorResponse> for ShippingOderDetailsError {
+    fn from(value: HttpErrorResponse) -> Self {
+        match value.status {
+            Some(400) => Self::Status400(value),
+            Some(403) => Self::Status403(value),
+            Some(404) => Self::Status404(value),
             Some(_) => Self::StatusNonExpected(value),
             None => Self::StatusNonExpected(value),
         }
@@ -168,6 +191,23 @@ impl PedidosYaClient {
 
         self.send_post_request(request).await
     }
+
+    pub async fn shippings_shipping_oder_details_get(
+        &self,
+        shipping_id: impl Into<String>,
+    ) -> Result<ShippingResponse, Error<ShippingOderDetailsError>> {
+        let url_path = format!("/v3/shippings/{}", shipping_id.into());
+
+        let request = self
+            .client
+            .request(
+                reqwest::Method::GET,
+                format!("{}{}", self.base_path, url_path),
+            )
+            .build()?;
+
+        self.send_post_request(request).await
+    }
 }
 
 pub enum WebhookGetConfigurationError {
@@ -206,6 +246,23 @@ pub mod webhooks_blocking {
             .json(&webhook_config_request)
             .send()
             .and_then(|res| res.json::<WebhooksConfigModel>())
+            .map_err(PedidosError::from)
+    }
+
+    pub fn blocking_get_orderstatus(
+        api_key: String,
+        shipping_id: String,
+    ) -> Result<WebhooksConfigModel, PedidosError<()>> {
+        let uri = format!("https://courier-api.pedidosya.com/v3/shippings/{shipping_id}");
+
+        let client = reqwest::blocking::Client::new();
+
+        client
+            .get(uri)
+            .header(reqwest::header::AUTHORIZATION, api_key)
+            .send()
+            .inspect(|r| println!("{}", r.status()))
+            .and_then(|r| r.json::<WebhooksConfigModel>())
             .map_err(PedidosError::from)
     }
 }

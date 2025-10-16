@@ -59,14 +59,17 @@ pub mod urls;
 pub mod webhook_configuration;
 pub mod webhook_configuration_model;
 
+mod callback_request;
 mod delivery_offer;
 mod route;
 mod shipping_item_request;
 mod shipping_pricing_route;
 mod shipping_request_requirements;
+mod shipping_response;
 mod way_point_model;
 mod way_point_model_response;
 
+pub use callback_request::CallbackRequest;
 pub use confirm_estime_order_request::ConfirmEstimationShippingRequest;
 pub use confirm_shipping_order_response::ConfirmShippingResponse;
 pub use delivery_offer::DeliveryOffer;
@@ -77,6 +80,7 @@ pub use route::Route;
 pub use shipping_item_request::ShippingItemRequest;
 pub use shipping_pricing_route::ShippingRoutePricing;
 pub use shipping_request_requirements::ShippingRequestRequirements;
+pub use shipping_response::ShippingResponse;
 pub use shipping_route::ShippingRoute;
 pub use shipping_status::ShippingStatus;
 pub use urls::Urls;

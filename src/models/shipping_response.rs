@@ -1,4 +1,4 @@
-use crate::models;
+use crate::models::{self, ShippingStatus};
 use serde::{Deserialize, Serialize};
 
 /// ShippingResponse : This model represents a shipping estimate order.
@@ -23,10 +23,15 @@ pub struct ShippingResponse {
     #[serde(rename = "deliveryOffers", skip_serializing_if = "Option::is_none")]
     pub delivery_offers: Option<Vec<models::DeliveryOffer>>,
     #[serde(rename = "route", skip_serializing_if = "Option::is_none")]
-    pub route: Option<Box<models::Route>>,
+    pub route: Option<Box<models::ShippingRoute>>,
+    //pub route: Option<Box<models::Route>>,
     /// This email will be used to send shipping confirmation and cancellation notifications to the end user.
     #[serde(rename = "notificationMail", skip_serializing_if = "Option::is_none")]
     pub notification_mail: Option<String>,
+    #[serde(rename = "status", skip_serializing_if = "Option::is_none")]
+    pub status: Option<ShippingStatus>,
+    #[serde(rename = "shareLocationUrl", skip_serializing_if = "Option::is_none")]
+    pub share_location_url: Option<String>,
 }
 
 impl ShippingResponse {
@@ -41,6 +46,8 @@ impl ShippingResponse {
             delivery_offers: None,
             route: None,
             notification_mail: None,
+            status: None,
+            share_location_url: None,
         }
     }
 }

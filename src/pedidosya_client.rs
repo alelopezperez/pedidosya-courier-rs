@@ -214,7 +214,7 @@ pub enum WebhookGetConfigurationError {
     Status403(HttpErrorResponse),
 }
 pub mod webhooks_blocking {
-    use crate::models::{Error as PedidosError, WebhooksConfigModel};
+    use crate::models::{Error as PedidosError, ShippingResponse, WebhooksConfigModel};
 
     pub fn blocking_webhook_get_webhooks_configuration(
         api_key: String,
@@ -252,7 +252,7 @@ pub mod webhooks_blocking {
     pub fn blocking_get_orderstatus(
         api_key: String,
         shipping_id: String,
-    ) -> Result<WebhooksConfigModel, PedidosError<()>> {
+    ) -> Result<ShippingResponse, PedidosError<()>> {
         let uri = format!("https://courier-api.pedidosya.com/v3/shippings/{shipping_id}");
 
         let client = reqwest::blocking::Client::new();
@@ -262,7 +262,7 @@ pub mod webhooks_blocking {
             .header(reqwest::header::AUTHORIZATION, api_key)
             .send()
             .inspect(|r| println!("{}", r.status()))
-            .and_then(|r| r.json::<WebhooksConfigModel>())
+            .and_then(|r| r.json::<ShippingResponse>())
             .map_err(PedidosError::from)
     }
 }

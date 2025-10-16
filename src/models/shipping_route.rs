@@ -29,6 +29,15 @@ pub struct ShippingRoute {
         skip_serializing_if = "Option::is_none"
     )]
     pub estimated_delivery_time: Option<String>,
+
+    /// Estimated delivery time in UTC. Format ISO 8601: YYYY-MM-DDTHH:MM:SSZ
+    #[serde(rename = "deliveryTimeFrom", skip_serializing_if = "Option::is_none")]
+    pub delivery_time_from: Option<String>,
+
+    /// Estimated delivery time in UTC. Format ISO 8601: YYYY-MM-DDTHH:MM:SSZ
+    #[serde(rename = "deliveryTimeTo", skip_serializing_if = "Option::is_none")]
+    pub delivery_time_to: Option<String>,
+
     /// Shipping total distance in meters
     #[serde(rename = "distance", skip_serializing_if = "Option::is_none")]
     pub distance: Option<f64>,
@@ -45,6 +54,8 @@ impl ShippingRoute {
             estimated_delivery_time: None,
             distance: None,
             pricing: None,
+            delivery_time_from: None,
+            delivery_time_to: None,
         }
     }
 }
@@ -55,6 +66,8 @@ pub enum DeliveryMode {
     Express,
     #[serde(rename = "SCHEDULED")]
     Scheduled,
+    #[serde(rename = "SCHEDULE")]
+    Schedule,
 }
 
 impl Default for DeliveryMode {
